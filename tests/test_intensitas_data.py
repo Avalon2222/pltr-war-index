@@ -116,3 +116,21 @@ def test_laporan_keuangan_kuartalan():
     assert lap["tanggal_rilis"].is_monotonic_increasing
     jarak = lap["tanggal_rilis"].diff().dropna().dt.days
     assert jarak.between(70, 110).all()
+
+
+def _harga_lebar(n_hari=70):
+    idx = pd.date_range("2024-01-01", periods=n_hari, freq="D")
+    return pd.DataFrame({"PLTR": np.linspace(20, 34, n_hari), "SPY": np.linspace(400, 420, n_hari)}, index=idx)
+
+
+def test_gabung_mingguan_return_lebih_dikurangi_patokan():
+    df = intensitas.gabung_mingguan(_konflik(), _harga_lebar())
+    assert len(df) > 0
+    assert df["return_lebih"].to_numpy() == pytest.approx((df["return_saham"] - df["SPY"]).to_numpy())
+    assert df[["perubahan_log", "return_saham"]].notna().all().all()   # minggu pertama (NaN) dibuang
+
+
+def test_gabung_mingguan_tanpa_patokan():
+    df = intensitas.gabung_mingguan(_konflik(), _harga_lebar(), patokan=None)
+    assert "SPY" not in df.columns
+    assert df["return_lebih"].to_numpy() == pytest.approx(df["return_saham"].to_numpy())
