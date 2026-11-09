@@ -165,3 +165,15 @@ def test_plasebo_sama_dengan_studi_satu():
     nol = kandidat[rng.choice(len(kandidat), size=(1, 1), replace=True)[0, 0]]
     h = sp.studi_satu(ret, ret.index[nol], jendela=(-1, 3))
     assert dist[0] == pytest.approx(h.car)
+
+
+def test_tabel_harga_dari_format_panjang():
+    panjang = pd.DataFrame({
+        "tanggal": pd.to_datetime(["2024-01-03", "2024-01-02", "2024-01-02", "2024-01-03"]),
+        "ticker": ["PLTR", "PLTR", "SPY", "SPY"],
+        "close": [11.0, 10.0, 470.0, 472.0],
+    })
+    lebar = sp.tabel_harga(panjang)
+    assert list(lebar.columns) == ["PLTR", "SPY"]
+    assert lebar.index.is_monotonic_increasing
+    assert lebar.loc["2024-01-03", "PLTR"] == 11.0
