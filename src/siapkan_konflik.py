@@ -112,6 +112,22 @@ def ringkas_harian(kejadian: pd.DataFrame, mulai: str = MULAI) -> pd.DataFrame:
     return hasil.reset_index()
 
 
+def gabung_ged_kandidat(ged: pd.DataFrame, kandidat: pd.DataFrame, mulai: str = MULAI) -> pd.DataFrame:
+    """GED final + Candidate -> tabel harian dengan kolom ``status`` ("final" atau "awal").
+
+    Candidate hanya dipakai untuk tanggal setelah GED final berakhir, supaya tidak ada kejadian
+    yang terhitung dua kali di masa transisi.
+    """
+    batas = pd.to_datetime(ged["date_start"]).max()
+    kandidat = kandidat[pd.to_datetime(kandidat["date_start"]) > batas]
+    semua = pd.concat([ged[KOLOM], kandidat[KOLOM]], ignore_index=True)
+    hasil = ringkas_harian(semua, mulai)
+    # Rentang yang melewati tanggal mulai kejadian terakhir dipotong, supaya ujung data tidak tampak "sepi".
+    hasil = hasil[hasil["tanggal"] <= pd.to_datetime(semua["date_start"]).max()].copy()
+    hasil["status"] = (hasil["tanggal"] > batas).map({True: "awal", False: "final"})
+    return hasil.reset_index(drop=True)
+
+
 def main() -> None:
     DIR_MENTAH.mkdir(parents=True, exist_ok=True)
     zip_ged = DIR_MENTAH / "ged261-csv.zip"
@@ -119,20 +135,11 @@ def main() -> None:
         print("Mengunduh GED 26.1 ...")
         zip_ged.write_bytes(_unduh(URL_GED))
     ged = baca_ged(zip_ged.read_bytes())
-    ged["status"] = "final"
     kandidat, url = baca_kandidat()
     print(f"Candidate dipakai: {url}")
-    # Candidate hanya dipakai untuk tanggal setelah GED final berakhir.
-    batas = pd.to_datetime(ged["date_start"]).max()
-    kandidat = kandidat[pd.to_datetime(kandidat["date_start"]) > batas]
-    semua = pd.concat([ged[KOLOM], kandidat[KOLOM]], ignore_index=True)
-    hasil = ringkas_harian(semua)
-    # Rentang yang melewati tanggal mulai kejadian terakhir dipotong, supaya ujung data tidak tampak "sepi".
-    hasil = hasil[hasil["tanggal"] <= pd.to_datetime(semua["date_start"]).max()]
-    hasil["status"] = (hasil["tanggal"] > batas).map({True: "awal", False: "final"})
+    hasil = gabung_ged_kandidat(ged, kandidat)
     hasil.to_csv(PATH_CSV, index=False, date_format="%Y-%m-%d")
     print(f"OK: {len(hasil)} hari ({hasil['tanggal'].min():%Y-%m-%d} s/d {hasil['tanggal'].max():%Y-%m-%d}) -> {PATH_CSV}")
-
 
 if __name__ == "__main__":
     main()
