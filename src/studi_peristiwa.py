@@ -82,7 +82,8 @@ def market_model(r_saham: pd.Series, r_pasar: pd.Series | None) -> tuple[float, 
     """
     y = r_saham.to_numpy(dtype=float)
     if r_pasar is None:
-        alpha, beta = float(np.nanmean(y)), 0.0
+        y = y[np.isfinite(y)]      # hari tanpa harga (NaN) tidak boleh membuat sigma ikut NaN
+        alpha, beta = float(np.mean(y)), 0.0
         resid = y - alpha
         ddof = 1
     else:
