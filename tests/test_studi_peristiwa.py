@@ -177,3 +177,11 @@ def test_tabel_harga_dari_format_panjang():
     assert list(lebar.columns) == ["PLTR", "SPY"]
     assert lebar.index.is_monotonic_increasing
     assert lebar.loc["2024-01-03", "PLTR"] == 11.0
+
+
+def test_market_model_tanpa_patokan_abaikan_nan():
+    s = pd.Series([0.01, np.nan, 0.03, 0.02, np.nan, 0.02])
+    alpha, beta, sigma = sp.market_model(s, None)
+    assert alpha == pytest.approx(0.02) and beta == 0.0
+    assert np.isfinite(sigma)
+    assert sigma == pytest.approx(np.std([0.01, 0.03, 0.02, 0.02], ddof=1))
