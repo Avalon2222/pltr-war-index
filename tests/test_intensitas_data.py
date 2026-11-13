@@ -134,3 +134,12 @@ def test_gabung_mingguan_tanpa_patokan():
     df = intensitas.gabung_mingguan(_konflik(), _harga_lebar(), patokan=None)
     assert "SPY" not in df.columns
     assert df["return_lebih"].to_numpy() == pytest.approx(df["return_saham"].to_numpy())
+
+
+def test_kinerja_relatif_saham_yang_baru_melantai():
+    idx = pd.date_range("2020-09-28", periods=4)
+    h = pd.DataFrame({"PLTR": [np.nan, np.nan, 10.0, 12.0], "ITA": [80.0, 82.0, 84.0, 88.0]}, index=idx)
+    k = intensitas.kinerja_relatif(h)
+    assert k["PLTR"].iloc[:2].isna().all()
+    assert k["PLTR"].iloc[2:].tolist() == [100, 120]
+    assert k["ITA"].iloc[0] == 100 and k["ITA"].iloc[-1] == pytest.approx(110)
