@@ -101,7 +101,12 @@ def korelasi_bergulir(ret_harian: pd.DataFrame, saham: str = "PLTR", pembanding=
 
 
 def kinerja_relatif(harga_lebar: pd.DataFrame, mulai=None) -> pd.DataFrame:
-    """Harga dinormalisasi: nilai 100 di tanggal mulai."""
+    """Harga dinormalisasi: nilai 100 di tanggal mulai.
+
+    Tiap kolom dibagi harga pertamanya yang tersedia. Saham yang baru melantai setelah `mulai`
+    (misalnya PLTR, IPO 30 September 2020) mulai dari 100 di hari pertamanya, bukan NaN semua.
+    """
     df = harga_lebar if mulai is None else harga_lebar[harga_lebar.index >= pd.Timestamp(mulai)]
     df = df.dropna(how="all")
-    return df / df.iloc[0] * 100
+    pertama = df.bfill().iloc[0]
+    return df / pertama * 100
