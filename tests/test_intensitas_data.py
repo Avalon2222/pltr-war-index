@@ -153,3 +153,10 @@ def test_muat_peristiwa_tolak_kategori_salah(tmp_path, kategori):
                    f"2024-01-02,Uji salah,{kategori},Asia,,\n")
     with pytest.raises(ValueError, match="Kategori peristiwa tidak dikenal"):
         muat_data.muat_peristiwa(csv)
+
+
+def test_minggu_terpanas_abaikan_minggu_tanpa_angka():
+    df = pd.DataFrame({"perubahan_log": [np.nan] + list(range(10)), "return_lebih": [5.0] + [0.0] * 10})
+    hasil = intensitas.minggu_terpanas(df, 0.9).set_index("kelompok")
+    assert hasil["jumlah_minggu"].sum() == 10
+    assert hasil.loc["Minggu lainnya", "rata_return_lebih"] == 0
