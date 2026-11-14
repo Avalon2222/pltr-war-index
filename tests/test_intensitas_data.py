@@ -160,3 +160,9 @@ def test_minggu_terpanas_abaikan_minggu_tanpa_angka():
     hasil = intensitas.minggu_terpanas(df, 0.9).set_index("kelompok")
     assert hasil["jumlah_minggu"].sum() == 10
     assert hasil.loc["Minggu lainnya", "rata_return_lebih"] == 0
+
+
+def test_kinerja_relatif_tanggal_mulai_setelah_data_habis():
+    idx = pd.date_range("2024-01-01", periods=3)
+    h = pd.DataFrame({"A": [10, 20, 5]}, index=idx)
+    assert intensitas.kinerja_relatif(h, "2025-01-01").empty
