@@ -76,9 +76,10 @@ def minggu_terpanas(df: pd.DataFrame, persentil: float = 0.9) -> pd.DataFrame:
     Lonjakan = perubahan_log di atas persentil tertentu (default 10% teratas).
     """
     batas = df["perubahan_log"].quantile(persentil)
-    panas = df["perubahan_log"] >= batas
+    ada = df["perubahan_log"].notna()  # minggu tanpa angka korban tidak masuk kelompok mana pun
+    panas = ada & (df["perubahan_log"] >= batas)
     ringkas = []
-    for label, maska in [("Minggu lonjakan korban", panas), ("Minggu lainnya", ~panas)]:
+    for label, maska in [("Minggu lonjakan korban", panas), ("Minggu lainnya", ada & ~panas)]:
         x = df.loc[maska, "return_lebih"]
         ringkas.append({
             "kelompok": label,
