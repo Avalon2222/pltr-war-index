@@ -41,6 +41,11 @@ def muat_harga(live: bool = False) -> tuple[pd.DataFrame, str]:
 
 def muat_peristiwa(path: Path = DIR_DATA / "peristiwa_perang.csv") -> pd.DataFrame:
     df = pd.read_csv(path, parse_dates=["tanggal"])
+    asing = sorted(set(df["kategori"].dropna()) - set(KATEGORI))
+    if asing or df["kategori"].isna().any():
+        # Tanpa cek ini, salah ketik kategori diam-diam jadi label kosong di grafik.
+        raise ValueError(f"Kategori peristiwa tidak dikenal di {Path(path).name}: {asing or ['(kosong)']}. "
+                         f"Pilihan: {URUTAN_KATEGORI}")
     df["label_kategori"] = df["kategori"].map(KATEGORI)
     return df.sort_values("tanggal").reset_index(drop=True)
 
