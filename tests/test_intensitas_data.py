@@ -143,3 +143,13 @@ def test_kinerja_relatif_saham_yang_baru_melantai():
     assert k["PLTR"].iloc[:2].isna().all()
     assert k["PLTR"].iloc[2:].tolist() == [100, 120]
     assert k["ITA"].iloc[0] == 100 and k["ITA"].iloc[-1] == pytest.approx(110)
+
+
+@pytest.mark.parametrize("kategori", ["eskalsi", ""])
+def test_muat_peristiwa_tolak_kategori_salah(tmp_path, kategori):
+    csv = tmp_path / "peristiwa.csv"
+    csv.write_text("tanggal,peristiwa,kategori,kawasan,keterangan,sumber\n"
+                   "2024-01-01,Uji,eskalasi,Asia,,\n"
+                   f"2024-01-02,Uji salah,{kategori},Asia,,\n")
+    with pytest.raises(ValueError, match="Kategori peristiwa tidak dikenal"):
+        muat_data.muat_peristiwa(csv)
