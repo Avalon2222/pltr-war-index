@@ -30,9 +30,14 @@ def konflik_mingguan(konflik: pd.DataFrame, teater: list[str] | None = None) -> 
         seri = df[[f"korban_{t}" for t in teater]].sum(axis=1)
     else:
         seri = df["korban_total"]
-    hasil = seri.resample("W-FRI").sum().to_frame("korban")
+    mingguan = seri.resample("W-FRI")
+    hasil = mingguan.sum().to_frame("korban")
     hasil["log_korban"] = np.log1p(hasil["korban"])
-    hasil["perubahan_log"] = hasil["log_korban"].diff()
+    # Minggu pertama/terakhir sering terpotong (data berakhir Rabu, misalnya). Korbannya jadi
+    # terlihat turun padahal harinya saja yang kurang, jadi perubahan_log hanya dihitung
+    # antara dua minggu yang sama-sama lengkap 7 hari.
+    lengkap = mingguan.size() == 7
+    hasil["perubahan_log"] = hasil["log_korban"].diff().where(lengkap & lengkap.shift(1, fill_value=False))
     return hasil
 
 

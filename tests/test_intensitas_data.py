@@ -30,6 +30,15 @@ def test_konflik_mingguan_menjumlah_per_minggu_jumat():
     assert m_ukr["korban"].iloc[1] == 7
 
 
+def test_konflik_mingguan_abaikan_minggu_terpotong():
+    k = _konflik(31)  # Senin 1 Jan s.d. Rabu 31 Jan 2024: minggu pertama & terakhir tidak lengkap
+    m = intensitas.konflik_mingguan(k)
+    assert m["perubahan_log"].iloc[0:2].isna().all()   # minggu terpotong + minggu sesudahnya
+    assert m["perubahan_log"].iloc[2:4].notna().all()  # 19 & 26 Jan: dua minggu lengkap
+    assert np.isnan(m["perubahan_log"].iloc[-1])       # 2 Feb: hanya 5 hari (27-31 Jan)
+    assert m["korban"].iloc[-1] == 5 * len(intensitas.TEATER)
+
+
 def test_korelasi_lag_menemukan_hubungan_tertunda():
     rng = np.random.default_rng(1)
     x = rng.normal(size=300)
