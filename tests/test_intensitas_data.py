@@ -77,6 +77,18 @@ def test_ringkas_harian_membagi_korban_rentang_tanggal():
     assert h["korban_total"].sum() == 400
 
 
+def test_ringkas_harian_tidak_kehilangan_korban_kecil_yang_dibagi():
+    kejadian = pd.DataFrame({
+        "date_start": ["2024-03-01"], "date_end": ["2024-03-30"], "country": ["Sudan"], "best": [10],
+    })
+    h = siapkan_konflik.ringkas_harian(kejadian)
+    assert len(h) == 30
+    assert h["korban_Sudan"].sum() == 10        # sebelumnya 0: 0,33 per hari dibulatkan ke 0
+    assert h["korban_total"].sum() == 10
+    assert h["kejadian_total"].sum() == 1
+    assert (h["korban_Sudan"] >= 0).all()
+
+
 def test_ringkas_harian_mengisi_hari_kosong_dan_memetakan_teater():
     kejadian = pd.DataFrame({
         "date_start": ["2024-01-01", "2024-01-01", "2024-01-03", "2019-05-05"],

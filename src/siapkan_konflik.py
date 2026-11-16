@@ -79,6 +79,17 @@ def baca_kandidat() -> tuple[pd.DataFrame, str]:
     raise RuntimeError("Tidak ada rilis UCDP Candidate yang bisa diunduh")
 
 
+def _bulatkan_kumulatif(tabel: pd.DataFrame) -> pd.DataFrame:
+    """Bulatkan angka harian ke bilangan bulat tanpa kehilangan total.
+
+    Membulatkan tiap hari sendiri-sendiri membuat 10 korban yang dibagi ke 30 hari
+    (0,33 per hari) hilang semua. Yang dibulatkan adalah jumlah kumulatifnya, lalu
+    diambil selisihnya, sehingga total per kolom tetap sama dengan data aslinya.
+    """
+    kumulatif = tabel.cumsum().round()
+    return kumulatif.diff().fillna(kumulatif).astype("int64")
+
+
 def ringkas_harian(kejadian: pd.DataFrame, mulai: str = MULAI) -> pd.DataFrame:
     """Kejadian -> tabel harian lebar: tanggal, korban_<teater>..., korban_total, kejadian_total.
 
@@ -105,9 +116,10 @@ def ringkas_harian(kejadian: pd.DataFrame, mulai: str = MULAI) -> pd.DataFrame:
     korban.columns = [f"korban_{c}" for c in korban.columns]
 
     hari = pd.date_range(df["tanggal"].min(), df["tanggal"].max(), freq="D")
-    hasil = korban.reindex(hari, fill_value=0).round().astype("int64")
+    hasil = _bulatkan_kumulatif(korban.reindex(hari, fill_value=0))
     hasil["korban_total"] = hasil.sum(axis=1)
-    hasil["kejadian_total"] = df.groupby("tanggal")["kejadian"].sum().reindex(hari, fill_value=0).round().astype("int64")
+    kejadian_harian = df.groupby("tanggal")["kejadian"].sum().reindex(hari, fill_value=0)
+    hasil["kejadian_total"] = _bulatkan_kumulatif(kejadian_harian.to_frame()).iloc[:, 0]
     hasil.index.name = "tanggal"
     return hasil.reset_index()
 
