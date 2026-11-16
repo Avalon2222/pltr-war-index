@@ -74,3 +74,11 @@ def test_return_mingguan_jumat_ke_jumat():
     assert np.isnan(r["PLTR"].iloc[0])
     jumat = harga.loc[["2024-01-05", "2024-01-12"], "PLTR"]
     assert r["PLTR"].iloc[1] == pytest.approx(jumat.iloc[1] / jumat.iloc[0] - 1)
+
+
+def test_p_plasebo_mengabaikan_nan_di_distribusi():
+    bersih = np.array([0.1, 0.2])
+    kotor = np.array([np.nan] * 8 + [0.1, 0.2])
+    assert studi_peristiwa.p_plasebo(0.15, kotor) == pytest.approx(studi_peristiwa.p_plasebo(0.15, bersih))
+    assert studi_peristiwa.p_plasebo(0.15, kotor) == pytest.approx(1.0)
+    assert np.isnan(studi_peristiwa.p_plasebo(0.15, np.array([np.nan, np.nan])))
