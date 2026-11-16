@@ -265,7 +265,13 @@ def uji_plasebo(
 
 
 def p_plasebo(nilai: float, distribusi: np.ndarray) -> float:
-    """p-value dua sisi berbasis persentil: seberapa ekstrem nilai asli di dalam distribusi acak."""
+    """p-value dua sisi berbasis persentil: seberapa ekstrem nilai asli di dalam distribusi acak.
+
+    NaN di distribusi (peristiwa plasebo yang gagal dihitung) dibuang dulu. Kalau tidak,
+    NaN terhitung sebagai "tidak lebih ekstrem" di kedua sisi dan p-value jadi terlalu kecil.
+    """
+    distribusi = np.asarray(distribusi, dtype=float)
+    distribusi = distribusi[np.isfinite(distribusi)]
     if len(distribusi) == 0 or not np.isfinite(nilai):
         return float("nan")
     bawah = np.mean(distribusi <= nilai)
