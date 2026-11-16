@@ -46,3 +46,26 @@ def test_muat_harga_live_berhasil(monkeypatch):
     monkeypatch.setattr(muat_data.ambil_harga, "ambil_semua", lambda **kw: _harga_palsu("PLTR"))
     df, sumber = muat_data.muat_harga(live=True)
     assert sumber == "live" and len(df) == 2
+
+
+class _Respons:
+    def __init__(self, data):
+        self._data = data
+
+    def raise_for_status(self):
+        pass
+
+    def json(self):
+        return self._data
+
+
+def test_ambil_satu_tanpa_adjclose_pakai_close(monkeypatch):
+    data = {"chart": {"result": [{
+        "timestamp": [1_704_205_800, 1_704_292_200],  # 2 & 3 Jan 2024, 09:30 New York
+        "indicators": {"quote": [{"close": [10.123456, 11.0], "volume": [100, None]}]},
+    }]}}
+    monkeypatch.setattr(ambil_harga.requests, "get", lambda *a, **k: _Respons(data))
+    df = ambil_harga.ambil_satu("^VIX")
+    assert df["tanggal"].dt.strftime("%Y-%m-%d").tolist() == ["2024-01-02", "2024-01-03"]
+    assert df["adj_close"].tolist() == [10.1235, 11.0]
+    assert df["volume"].tolist() == [100, 0]

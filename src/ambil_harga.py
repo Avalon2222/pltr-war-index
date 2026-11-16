@@ -59,6 +59,8 @@ def ambil_satu(ticker: str, mulai: str = MULAI) -> pd.DataFrame:
     r.raise_for_status()
     hasil = r.json()["chart"]["result"][0]
     ind = hasil["indicators"]
+    # Sebagian ticker (indeks, sebagian ETF) tidak punya blok "adjclose"; pakai close apa adanya.
+    adj = (ind.get("adjclose") or [{}])[0].get("adjclose") or ind["quote"][0]["close"]
     df = pd.DataFrame(
         {
             # Timestamp Yahoo = jam buka bursa New York; tanggal lokalnya yang dipakai.
@@ -68,7 +70,7 @@ def ambil_satu(ticker: str, mulai: str = MULAI) -> pd.DataFrame:
             .normalize(),
             "ticker": ticker,
             "close": ind["quote"][0]["close"],
-            "adj_close": ind["adjclose"][0]["adjclose"],
+            "adj_close": adj,
             "volume": ind["quote"][0]["volume"],
         }
     )
