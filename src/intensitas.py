@@ -75,6 +75,8 @@ def minggu_terpanas(df: pd.DataFrame, persentil: float = 0.9) -> pd.DataFrame:
 
     Lonjakan = perubahan_log di atas persentil tertentu (default 10% teratas).
     """
+    if not 0 < persentil < 1:
+        raise ValueError("persentil harus di antara 0 dan 1, misalnya 0.9")
     batas = df["perubahan_log"].quantile(persentil)
     ada = df["perubahan_log"].notna()  # minggu tanpa angka korban tidak masuk kelompok mana pun
     panas = ada & (df["perubahan_log"] >= batas)
