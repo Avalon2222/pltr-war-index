@@ -166,3 +166,10 @@ def test_kinerja_relatif_tanggal_mulai_setelah_data_habis():
     idx = pd.date_range("2024-01-01", periods=3)
     h = pd.DataFrame({"A": [10, 20, 5]}, index=idx)
     assert intensitas.kinerja_relatif(h, "2025-01-01").empty
+
+
+@pytest.mark.parametrize("persentil", [0, 1, 90, -0.1])
+def test_minggu_terpanas_menolak_persentil_di_luar_0_1(persentil):
+    df = pd.DataFrame({"perubahan_log": np.arange(10.0), "return_lebih": np.zeros(10)})
+    with pytest.raises(ValueError):
+        intensitas.minggu_terpanas(df, persentil)
