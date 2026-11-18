@@ -208,3 +208,16 @@ def test_studi_satu_return_konstan_tidak_signifikan_palsu():
     ret["PLTR"] = 0.0
     h = sp.studi_satu(ret, idx[200], patokan=None)      # sigma persis 0: dulu ZeroDivisionError
     assert np.isnan(h.t_stat)
+
+
+def test_plasebo_tetap_jalan_dengan_hari_bolong():
+    ret = _data_sintetis(n=400, seed=3)
+    ret.iloc[::30, 0] = np.nan                       # beberapa hari tanpa harga PLTR
+    dist = sp.uji_plasebo(ret, n_peristiwa=1, jendela=(-1, 3), n_ulang=200)
+    assert np.isfinite(dist).mean() > 0.9
+    # Tetap konsisten dengan studi_satu untuk hari yang sama.
+    rng = np.random.default_rng(7)
+    kandidat = np.arange(130, len(ret) - 1 - 3 + 1)
+    nol = kandidat[rng.choice(len(kandidat), size=(200, 1), replace=True)[0, 0]]
+    h = sp.studi_satu(ret, ret.index[nol], jendela=(-1, 3))
+    assert dist[0] == pytest.approx(h.car)
