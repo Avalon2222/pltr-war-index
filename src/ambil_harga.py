@@ -91,7 +91,15 @@ def ambil_semua(tickers: list[str] | None = None, jeda: float = 1.0) -> pd.DataF
 
 
 def perbarui_csv(path: Path = PATH_CSV) -> pd.DataFrame:
+    """Unduh ulang semua ticker lalu timpa CSV snapshot.
+
+    Kalau ada ticker yang kembali kosong (Yahoo sedang bermasalah), CSV lama tidak ditimpa:
+    snapshot setengah jadi akan membuat studi peristiwa diam-diam kehilangan pembanding.
+    """
     df = ambil_semua()
+    kosong = sorted(set(TICKER) - set(df.loc[df["adj_close"].notna(), "ticker"]))
+    if kosong:
+        raise RuntimeError(f"Ticker tanpa data: {kosong}. CSV lama tidak ditimpa.")
     df.to_csv(path, index=False, date_format="%Y-%m-%d")
     return df
 

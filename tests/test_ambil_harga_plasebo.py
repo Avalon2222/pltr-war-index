@@ -82,3 +82,16 @@ def test_p_plasebo_mengabaikan_nan_di_distribusi():
     assert studi_peristiwa.p_plasebo(0.15, kotor) == pytest.approx(studi_peristiwa.p_plasebo(0.15, bersih))
     assert studi_peristiwa.p_plasebo(0.15, kotor) == pytest.approx(1.0)
     assert np.isnan(studi_peristiwa.p_plasebo(0.15, np.array([np.nan, np.nan])))
+
+
+def test_perbarui_csv_tidak_menimpa_kalau_ada_ticker_kosong(tmp_path, monkeypatch):
+    import pandas as pd
+
+    path = tmp_path / "harga.csv"
+    path.write_text("isi lama")
+    tiruan = pd.DataFrame({"tanggal": [pd.Timestamp("2024-01-02")], "ticker": ["PLTR"],
+                           "close": [20.0], "adj_close": [20.0], "volume": [1]})
+    monkeypatch.setattr(ambil_harga, "ambil_semua", lambda *a, **k: tiruan)
+    with pytest.raises(RuntimeError, match="SPY"):
+        ambil_harga.perbarui_csv(path)
+    assert path.read_text() == "isi lama"
