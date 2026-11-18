@@ -99,7 +99,9 @@ def ringkas_harian(kejadian: pd.DataFrame, mulai: str = MULAI) -> pd.DataFrame:
     `date_start` dan `date_end`. Hari tanpa kejadian tetap muncul dengan nilai 0.
     """
     df = kejadian.copy()
-    df["mulai"] = pd.to_datetime(df["date_start"]).dt.normalize()
+    df["mulai"] = pd.to_datetime(df["date_start"], errors="coerce").dt.normalize()
+    # Kejadian tanpa tanggal mulai tidak bisa ditaruh di hari mana pun; tanpa ini repeat() gagal.
+    df = df.dropna(subset=["mulai"])
     akhir = df["date_end"] if "date_end" in df else df["date_start"]
     df["akhir"] = pd.to_datetime(akhir).dt.normalize().fillna(df["mulai"])
     df["hari"] = ((df["akhir"] - df["mulai"]).dt.days + 1).clip(lower=1)

@@ -3,6 +3,7 @@
 import io
 import zipfile
 
+import pandas as pd
 import pytest
 
 from src import siapkan_konflik
@@ -92,3 +93,11 @@ def test_main_tanpa_jaringan(tmp_path, monkeypatch):
     isi = (tmp_path / "konflik_harian.csv").read_text().splitlines()
     assert isi[0].startswith("tanggal,")
     assert len(isi) == 3 and isi[1].startswith("2024-01-01") and isi[2].endswith("awal")
+
+
+def test_ringkas_harian_lewati_kejadian_tanpa_tanggal():
+    k = pd.DataFrame({"date_start": ["2024-01-01", None], "date_end": ["2024-01-02", None],
+                      "best": [4, 3], "country": ["Ukraine", "Ukraine"]})
+    hasil = siapkan_konflik.ringkas_harian(k)
+    assert len(hasil) == 2
+    assert hasil["korban_total"].sum() == 4
