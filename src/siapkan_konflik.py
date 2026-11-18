@@ -112,6 +112,10 @@ def ringkas_harian(kejadian: pd.DataFrame, mulai: str = MULAI) -> pd.DataFrame:
     df["kejadian"] = 1 / df["hari"]
     df = df[df["tanggal"] >= pd.Timestamp(mulai)]
     df["teater"] = df["country"].map(TEATER).fillna("Lainnya")
+    if df.empty:
+        # Tidak ada kejadian sejak `mulai`: tabel kosong berkolom lengkap, bukan error date_range(NaT).
+        kolom = ["tanggal", *[f"korban_{t}" for t in URUTAN_TEATER], "korban_total", "kejadian_total"]
+        return pd.DataFrame(columns=kolom)
 
     korban = df.pivot_table(index="tanggal", columns="teater", values="best", aggfunc="sum", fill_value=0)
     korban = korban.reindex(columns=URUTAN_TEATER, fill_value=0)
