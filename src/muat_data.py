@@ -41,6 +41,8 @@ def muat_harga(live: bool = False) -> tuple[pd.DataFrame, str]:
 
 def muat_peristiwa(path: Path = DIR_DATA / "peristiwa_perang.csv") -> pd.DataFrame:
     df = pd.read_csv(path, parse_dates=["tanggal"])
+    # " Eskalasi" atau "ESKALASI" dari suntingan manual tetap dikenali.
+    df["kategori"] = df["kategori"].str.strip().str.lower()
     asing = sorted(set(df["kategori"].dropna()) - set(KATEGORI))
     if asing or df["kategori"].isna().any():
         # Tanpa cek ini, salah ketik kategori diam-diam jadi label kosong di grafik.
