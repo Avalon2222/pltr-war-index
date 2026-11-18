@@ -90,10 +90,16 @@ def market_model(r_saham: pd.Series, r_pasar: pd.Series | None) -> tuple[float, 
         x = r_pasar.to_numpy(dtype=float)
         ok = np.isfinite(x) & np.isfinite(y)
         x, y = x[ok], y[ok]
+        if len(x) < 3 or np.var(x, ddof=1) == 0:
+            # Regresi butuh minimal 3 titik dan return pasar yang bervariasi.
+            return float("nan"), float("nan"), float("nan")
         beta = float(np.cov(x, y, ddof=1)[0, 1] / np.var(x, ddof=1))
         alpha = float(y.mean() - beta * x.mean())
         resid = y - (alpha + beta * x)
         ddof = 2
+    if len(resid) <= ddof:
+        # Terlalu sedikit hari bursa untuk menaksir simpangan; jangan sampai bagi nol jadi sigma inf.
+        return alpha, beta, float("nan")
     sigma = float(np.sqrt(np.sum(resid**2) / (len(resid) - ddof)))
     return alpha, beta, sigma
 
