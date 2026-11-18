@@ -185,3 +185,15 @@ def test_market_model_tanpa_patokan_abaikan_nan():
     assert alpha == pytest.approx(0.02) and beta == 0.0
     assert np.isfinite(sigma)
     assert sigma == pytest.approx(np.std([0.01, 0.03, 0.02, 0.02], ddof=1))
+
+
+def test_market_model_data_terlalu_sedikit_atau_pasar_datar():
+    import math
+
+    # Pasar datar: var(x) = 0, beta tidak terdefinisi (tadinya inf/NaN dengan RuntimeWarning).
+    y = pd.Series([0.01, 0.02, -0.01, 0.0])
+    x = pd.Series([0.0, 0.0, 0.0, 0.0])
+    assert all(math.isnan(v) for v in sp.market_model(y, x))
+    # Dua titik saja: sigma tidak bisa ditaksir (len - ddof = 0).
+    assert math.isnan(sp.market_model(pd.Series([0.01, 0.02]), pd.Series([0.01, 0.03]))[2])
+    assert math.isnan(sp.market_model(pd.Series([0.01]), None)[2])
