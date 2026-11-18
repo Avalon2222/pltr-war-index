@@ -262,15 +262,14 @@ def uji_plasebo(
     for k, nol in enumerate(kandidat):
         e = slice(nol + JENDELA_ESTIMASI[0], nol + JENDELA_ESTIMASI[1] + 1)
         j = slice(nol + jendela[0], nol + jendela[1] + 1)
-        if x is None:
-            alpha, beta = y[e].mean(), 0.0
-            normal = alpha
-        else:
-            xe, ye = x[e], y[e]
-            beta = np.cov(xe, ye, ddof=1)[0, 1] / np.var(xe, ddof=1)
-            alpha = ye.mean() - beta * xe.mean()
-            normal = alpha + beta * x[j]
-        car_semua[k] = np.sum(y[j] - normal)
+        # Pakai market_model yang sama dengan studi_satu: hari tanpa harga (NaN) dilewati.
+        # Dulu satu NaN di jendela estimasi membuat CAR plasebo NaN, sehingga data dengan
+        # beberapa hari bolong menghasilkan distribusi plasebo kosong.
+        alpha, beta, _ = market_model(pd.Series(y[e]), pd.Series(x[e]) if x is not None else None)
+        normal = alpha if x is None else alpha + beta * x[j]
+        ar = y[j] - normal
+        # Sama seperti cumsum di studi_satu: AR NaN tidak dihitung, kecuali semuanya NaN.
+        car_semua[k] = np.nansum(ar) if np.isfinite(ar).any() else np.nan
 
     sampel = rng.choice(len(kandidat), size=(n_ulang, n_peristiwa), replace=True)
     return car_semua[sampel].mean(axis=1)
