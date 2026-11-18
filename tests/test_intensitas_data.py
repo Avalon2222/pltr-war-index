@@ -194,3 +194,13 @@ def test_minggu_terpanas_menolak_persentil_di_luar_0_1(persentil):
     df = pd.DataFrame({"perubahan_log": np.arange(10.0), "return_lebih": np.zeros(10)})
     with pytest.raises(ValueError):
         intensitas.minggu_terpanas(df, persentil)
+
+
+def test_muat_peristiwa_kategori_huruf_besar_dan_spasi(tmp_path):
+    csv = tmp_path / "peristiwa.csv"
+    csv.write_text("tanggal,peristiwa,kategori,kawasan,keterangan,sumber\n"
+                   "2024-01-01,Uji,Eskalasi ,Asia,,\n"
+                   "2024-01-02,Uji dua, PERANG_BARU,Asia,,\n")
+    df = muat_data.muat_peristiwa(csv)
+    assert list(df["kategori"]) == ["eskalasi", "perang_baru"]
+    assert list(df["label_kategori"]) == ["Eskalasi", "Perang baru pecah"]
