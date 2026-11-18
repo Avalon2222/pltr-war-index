@@ -197,3 +197,14 @@ def test_market_model_data_terlalu_sedikit_atau_pasar_datar():
     # Dua titik saja: sigma tidak bisa ditaksir (len - ddof = 0).
     assert math.isnan(sp.market_model(pd.Series([0.01, 0.02]), pd.Series([0.01, 0.03]))[2])
     assert math.isnan(sp.market_model(pd.Series([0.01]), None)[2])
+
+
+def test_studi_satu_return_konstan_tidak_signifikan_palsu():
+    idx = pd.bdate_range("2021-01-04", periods=300)
+    ret = pd.DataFrame({"PLTR": np.full(300, 0.001), "SPY": np.random.default_rng(0).normal(0, 0.01, 300)}, index=idx)
+    h = sp.studi_satu(ret, idx[200], patokan=None)
+    assert np.isnan(h.t_stat) and np.isnan(h.p_value)
+    assert not h.signifikan
+    ret["PLTR"] = 0.0
+    h = sp.studi_satu(ret, idx[200], patokan=None)      # sigma persis 0: dulu ZeroDivisionError
+    assert np.isnan(h.t_stat)
