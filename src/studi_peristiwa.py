@@ -26,6 +26,7 @@ import numpy as np
 import pandas as pd
 
 JENDELA_ESTIMASI = (-130, -11)  # hari relatif terhadap hari 0, dua-duanya inklusif
+SIGMA_MIN = 1e-12               # di bawah ini simpangan residual hanya sisa pembulatan float
 
 
 # ---------------------------------------------------------------------------
@@ -138,7 +139,12 @@ def studi_satu(
     )
     tabel["car"] = tabel["ar"].cumsum()
     car = float(tabel["car"].iloc[-1])
-    t = car / (sigma * math.sqrt(len(tabel)))
+    # Return yang hampir konstan memberi sigma 0 (ZeroDivisionError) atau sisa pembulatan
+    # seperti 4e-19 yang membuat t raksasa dan "signifikan" palsu. Keduanya tidak bisa diuji.
+    if np.isfinite(sigma) and sigma > SIGMA_MIN:
+        t = car / (sigma * math.sqrt(len(tabel)))
+    else:
+        t = float("nan")
     return HasilPeristiwa(tabel, alpha, beta, sigma, car, t, p_dua_sisi(t), ret.index[nol])
 
 
