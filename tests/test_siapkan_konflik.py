@@ -101,3 +101,10 @@ def test_ringkas_harian_lewati_kejadian_tanpa_tanggal():
     hasil = siapkan_konflik.ringkas_harian(k)
     assert len(hasil) == 2
     assert hasil["korban_total"].sum() == 4
+
+
+def test_ringkas_harian_tanpa_kejadian_sejak_mulai():
+    k = pd.DataFrame({"date_start": ["2019-01-01"], "date_end": ["2019-01-02"], "best": [5], "country": ["Ukraine"]})
+    hasil = siapkan_konflik.ringkas_harian(k, mulai="2020-01-01")
+    assert hasil.empty
+    assert {"tanggal", "korban_total", "kejadian_total"} <= set(hasil.columns)
