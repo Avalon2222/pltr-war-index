@@ -221,3 +221,15 @@ def test_plasebo_tetap_jalan_dengan_hari_bolong():
     nol = kandidat[rng.choice(len(kandidat), size=(200, 1), replace=True)[0, 0]]
     h = sp.studi_satu(ret, ret.index[nol], jendela=(-1, 3))
     assert dist[0] == pytest.approx(h.car)
+
+
+def test_car_tidak_nan_saat_hari_terakhir_jendela_tanpa_harga():
+    ret = _data_sintetis()
+    nol = 250
+    lengkap = sp.studi_satu(ret, ret.index[nol])
+    bolong = ret.copy()
+    bolong.iloc[nol + 20, bolong.columns.get_loc("PLTR")] = np.nan
+    h = sp.studi_satu(bolong, ret.index[nol])
+    assert np.isfinite(h.car) and np.isfinite(h.t_stat)
+    assert h.car == pytest.approx(lengkap.tabel["ar"].iloc[:-1].sum())
+    assert h.tabel["car"].iloc[-1] == pytest.approx(h.car)
