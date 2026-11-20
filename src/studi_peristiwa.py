@@ -137,12 +137,17 @@ def studi_satu(
             "ar": ar.to_numpy(),
         }
     )
-    tabel["car"] = tabel["ar"].cumsum()
-    car = float(tabel["car"].iloc[-1])
+    # cumsum melewati AR NaN tetapi posisi itu sendiri tetap NaN; kalau hari terakhir jendela
+    # tidak punya harga, CAR akhirnya ikut NaN. ffill membawa akumulasi terakhir ke hari itu,
+    # sama seperti nansum yang dipakai uji_plasebo.
+    tabel["car"] = tabel["ar"].cumsum().ffill()
+    ada_ar = int(tabel["ar"].notna().sum())
+    car = float(tabel["ar"].sum()) if ada_ar else float("nan")
     # Return yang hampir konstan memberi sigma 0 (ZeroDivisionError) atau sisa pembulatan
     # seperti 4e-19 yang membuat t raksasa dan "signifikan" palsu. Keduanya tidak bisa diuji.
-    if np.isfinite(sigma) and sigma > SIGMA_MIN:
-        t = car / (sigma * math.sqrt(len(tabel)))
+    if np.isfinite(sigma) and sigma > SIGMA_MIN and ada_ar:
+        # Varians CAR = jumlah hari yang benar-benar punya AR x sigma^2, bukan panjang jendela.
+        t = car / (sigma * math.sqrt(ada_ar))
     else:
         t = float("nan")
     return HasilPeristiwa(tabel, alpha, beta, sigma, car, t, p_dua_sisi(t), ret.index[nol])
