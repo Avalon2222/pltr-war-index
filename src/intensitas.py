@@ -104,8 +104,11 @@ def korelasi_bergulir(ret_harian: pd.DataFrame, saham: str = "PLTR", pembanding=
 
     Dipakai untuk menjawab: PLTR lebih mirip saham pertahanan (ITA) atau saham teknologi (QQQ)?
     """
-    hasil = {p: ret_harian[saham].rolling(jendela).corr(ret_harian[p]) for p in pembanding}
-    return pd.DataFrame(hasil).dropna()
+    # Pembanding yang tidak ada di data (mis. unduhan live gagal untuk satu ticker) dilewati,
+    # dan baris hanya dibuang bila SEMUA korelasinya kosong; dengan dropna() biasa, satu
+    # pembanding yang kosong total membuat seluruh grafik ikut kosong.
+    hasil = {p: ret_harian[saham].rolling(jendela).corr(ret_harian[p]) for p in pembanding if p in ret_harian}
+    return pd.DataFrame(hasil, index=ret_harian.index).dropna(how="all")
 
 
 def kinerja_relatif(harga_lebar: pd.DataFrame, mulai=None) -> pd.DataFrame:

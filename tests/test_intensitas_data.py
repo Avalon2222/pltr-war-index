@@ -204,3 +204,12 @@ def test_muat_peristiwa_kategori_huruf_besar_dan_spasi(tmp_path):
     df = muat_data.muat_peristiwa(csv)
     assert list(df["kategori"]) == ["eskalasi", "perang_baru"]
     assert list(df["label_kategori"]) == ["Eskalasi", "Perang baru pecah"]
+
+
+def test_korelasi_bergulir_pembanding_hilang_atau_kosong():
+    rng = np.random.default_rng(3)
+    idx = pd.bdate_range("2024-01-01", periods=60)
+    ret = pd.DataFrame({"PLTR": rng.normal(0, 0.02, 60), "QQQ": rng.normal(0, 0.01, 60), "ITA": np.nan}, index=idx)
+    hasil = intensitas.korelasi_bergulir(ret, pembanding=("ITA", "QQQ", "XLK"), jendela=20)
+    assert list(hasil.columns) == ["ITA", "QQQ"]
+    assert len(hasil) == 41 and hasil["QQQ"].notna().all()
