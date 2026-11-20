@@ -103,7 +103,8 @@ def ringkas_harian(kejadian: pd.DataFrame, mulai: str = MULAI) -> pd.DataFrame:
     # Kejadian tanpa tanggal mulai tidak bisa ditaruh di hari mana pun; tanpa ini repeat() gagal.
     df = df.dropna(subset=["mulai"])
     akhir = df["date_end"] if "date_end" in df else df["date_start"]
-    df["akhir"] = pd.to_datetime(akhir).dt.normalize().fillna(df["mulai"])
+    # date_end yang rusak cukup dianggap sama dengan date_start, bukan menggagalkan seluruh ETL.
+    df["akhir"] = pd.to_datetime(akhir, errors="coerce").dt.normalize().fillna(df["mulai"])
     df["hari"] = ((df["akhir"] - df["mulai"]).dt.days + 1).clip(lower=1)
     # Satu baris per (kejadian, hari) dengan korban dibagi rata.
     df = df.loc[df.index.repeat(df["hari"])].copy()
