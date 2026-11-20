@@ -108,3 +108,13 @@ def test_ringkas_harian_tanpa_kejadian_sejak_mulai():
     hasil = siapkan_konflik.ringkas_harian(k, mulai="2020-01-01")
     assert hasil.empty
     assert {"tanggal", "korban_total", "kejadian_total"} <= set(hasil.columns)
+
+
+def test_ringkas_harian_date_end_rusak_dianggap_sehari():
+    kejadian = pd.DataFrame({
+        "date_start": ["2024-03-02", "2024-03-01"], "date_end": ["2024-03-03", "bukan tanggal"],
+        "country": ["Ukraine", "Ukraine"], "best": [4, 10],
+    })
+    hasil = siapkan_konflik.ringkas_harian(kejadian, mulai="2024-01-01")
+    assert hasil["korban_total"].sum() == 14
+    assert hasil.loc[hasil["tanggal"] == pd.Timestamp("2024-03-01"), "korban_total"].item() == 10
