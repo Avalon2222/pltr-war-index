@@ -40,7 +40,14 @@ def muat_harga(live: bool = False) -> tuple[pd.DataFrame, str]:
 
 
 def muat_peristiwa(path: Path = DIR_DATA / "peristiwa_perang.csv") -> pd.DataFrame:
-    df = pd.read_csv(path, parse_dates=["tanggal"])
+    df = pd.read_csv(path)
+    tanggal = pd.to_datetime(df["tanggal"], errors="coerce")
+    if tanggal.isna().any():
+        # Tanpa cek ini satu tanggal salah ketik (mis. 2023-13-01) membuat seluruh kolom jadi teks,
+        # dan event study baru gagal jauh di belakang dengan pesan yang membingungkan.
+        rusak = df.loc[tanggal.isna(), "peristiwa"].fillna("(tanpa nama)").tolist()
+        raise ValueError(f"Tanggal peristiwa tidak valid di {Path(path).name}: {rusak}")
+    df["tanggal"] = tanggal
     # " Eskalasi" atau "ESKALASI" dari suntingan manual tetap dikenali.
     df["kategori"] = df["kategori"].str.strip().str.lower()
     asing = sorted(set(df["kategori"].dropna()) - set(KATEGORI))
