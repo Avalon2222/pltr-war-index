@@ -23,3 +23,11 @@ def test_muat_laporan_buang_tanggal_rusak(tmp_path):
     lap = muat_data.muat_laporan(csv)
     assert pd.api.types.is_datetime64_any_dtype(lap["tanggal_rilis"])
     assert lap["kuartal"].tolist() == ["Q4 2023"]
+
+
+def test_kinerja_relatif_lewati_harga_nol_di_awal():
+    idx = pd.date_range("2024-01-01", periods=3, freq="D")
+    harga = pd.DataFrame({"PLTR": [0.0, 20.0, 30.0], "SPY": [100.0, 110.0, 120.0]}, index=idx)
+    hasil = intensitas.kinerja_relatif(harga)
+    assert hasil["PLTR"].iloc[1:].tolist() == [100.0, 150.0]
+    assert hasil["SPY"].iloc[0] == 100.0
