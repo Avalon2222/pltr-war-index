@@ -64,4 +64,8 @@ def muat_konflik(path: Path = DIR_DATA / "konflik_harian.csv") -> pd.DataFrame:
 
 
 def muat_laporan(path: Path = DIR_DATA / "laporan_keuangan_pltr.csv") -> pd.DataFrame:
-    return pd.read_csv(path, parse_dates=["tanggal_rilis"])
+    df = pd.read_csv(path)
+    # Baris dengan tanggal rusak atau kosong dibuang; kalau tidak, kolomnya jadi teks dan
+    # pengecekan "ada laporan keuangan di jendela?" gagal untuk semua peristiwa.
+    df["tanggal_rilis"] = pd.to_datetime(df["tanggal_rilis"], errors="coerce")
+    return df.dropna(subset=["tanggal_rilis"]).reset_index(drop=True)
