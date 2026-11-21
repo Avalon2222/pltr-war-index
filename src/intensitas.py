@@ -121,5 +121,7 @@ def kinerja_relatif(harga_lebar: pd.DataFrame, mulai=None) -> pd.DataFrame:
     df = df.dropna(how="all")
     if df.empty:
         return df.copy()  # tanggal mulai setelah data terakhir: tidak ada yang dinormalisasi
-    pertama = df.bfill().iloc[0]
+    # Harga 0 atau negatif (baris rusak dari sumber data) tidak boleh jadi pembagi: hasilnya
+    # inf dan seluruh garis saham itu hilang dari grafik. Pakai harga positif pertama.
+    pertama = df.where(df > 0).bfill().iloc[0]
     return df / pertama * 100
