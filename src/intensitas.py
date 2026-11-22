@@ -51,9 +51,13 @@ def gabung_mingguan(konflik: pd.DataFrame, harga_lebar: pd.DataFrame, saham: str
     """Tabel mingguan: korban, perubahan_log, return saham, return lebih (saham - patokan)."""
     k = konflik_mingguan(konflik, teater)
     r = return_mingguan(harga_lebar)
-    df = k.join(r[[saham] + ([patokan] if patokan else [])], how="inner")
-    df = df.rename(columns={saham: "return_saham"})
+    # Patokan sama dengan saham: kolomnya jangan dipilih dua kali. Kalau dipilih dua kali, keduanya
+    # ikut diganti nama jadi return_saham, lalu df[patokan] melempar KeyError.
+    df = k.join(r[list(dict.fromkeys([saham] + ([patokan] if patokan else [])))], how="inner")
+    df["return_saham"] = df[saham]
     df["return_lebih"] = df["return_saham"] - (df[patokan] if patokan else 0.0)
+    if saham != patokan:
+        df = df.drop(columns=saham)
     return df.dropna(subset=["perubahan_log", "return_saham"])
 
 
