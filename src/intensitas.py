@@ -76,7 +76,8 @@ def korelasi_lag(df: pd.DataFrame, kolom_x: str = "perubahan_log", kolom_y: str 
         n = int(ok.sum())
         r = float(np.corrcoef(df.loc[ok, kolom_x], y[ok])[0, 1]) if n > 2 else float("nan")
         baris.append({"lag": lag, "korelasi": r, "n": n, "batas": 1.96 / np.sqrt(n) if n else np.nan})
-    return pd.DataFrame(baris)
+    # Kolom tetap ada walau tidak ada lag sama sekali, supaya grafik tidak KeyError.
+    return pd.DataFrame(baris, columns=["lag", "korelasi", "n", "batas"])
 
 
 def minggu_terpanas(df: pd.DataFrame, persentil: float = 0.9) -> pd.DataFrame:

@@ -219,3 +219,9 @@ def test_gabung_mingguan_patokan_sama_dengan_saham():
     df = intensitas.gabung_mingguan(_konflik(), _harga_lebar(), saham="SPY", patokan="SPY")
     assert len(df) > 0
     assert (df["return_lebih"] == 0).all()   # saham dikurangi dirinya sendiri
+
+
+def test_korelasi_lag_tabel_kosong_tetap_punya_kolom():
+    kosong = pd.DataFrame({"perubahan_log": pd.Series(dtype=float), "return_lebih": pd.Series(dtype=float)})
+    hasil = intensitas.korelasi_lag(kosong, lag_maks=-1)
+    assert list(hasil.columns) == ["lag", "korelasi", "n", "batas"]
