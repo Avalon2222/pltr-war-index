@@ -225,3 +225,8 @@ def test_korelasi_lag_tabel_kosong_tetap_punya_kolom():
     kosong = pd.DataFrame({"perubahan_log": pd.Series(dtype=float), "return_lebih": pd.Series(dtype=float)})
     hasil = intensitas.korelasi_lag(kosong, lag_maks=-1)
     assert list(hasil.columns) == ["lag", "korelasi", "n", "batas"]
+
+
+def test_korelasi_lag_maks_negatif_dibaca_mutlak():
+    df = pd.DataFrame({"perubahan_log": np.arange(20.0), "return_lebih": np.arange(20.0) ** 2})
+    assert intensitas.korelasi_lag(df, lag_maks=-2)["lag"].tolist() == [-2, -1, 0, 1, 2]
