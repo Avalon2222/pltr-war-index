@@ -213,3 +213,9 @@ def test_korelasi_bergulir_pembanding_hilang_atau_kosong():
     hasil = intensitas.korelasi_bergulir(ret, pembanding=("ITA", "QQQ", "XLK"), jendela=20)
     assert list(hasil.columns) == ["ITA", "QQQ"]
     assert len(hasil) == 41 and hasil["QQQ"].notna().all()
+
+
+def test_gabung_mingguan_patokan_sama_dengan_saham():
+    df = intensitas.gabung_mingguan(_konflik(), _harga_lebar(), saham="SPY", patokan="SPY")
+    assert len(df) > 0
+    assert (df["return_lebih"] == 0).all()   # saham dikurangi dirinya sendiri
