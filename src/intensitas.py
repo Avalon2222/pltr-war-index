@@ -70,6 +70,8 @@ def korelasi_lag(df: pd.DataFrame, kolom_x: str = "perubahan_log", kolom_y: str 
     Batas ±1.96/sqrt(n) = kira-kira batas korelasi yang masih bisa terjadi karena kebetulan.
     """
     baris = []
+    # lag_maks negatif dibaca sebagai jangkauannya (|-4| = 4); range(4, -3) kosong tanpa ini.
+    lag_maks = abs(int(lag_maks))
     for lag in range(-lag_maks, lag_maks + 1):
         y = df[kolom_y].shift(-lag)
         ok = df[kolom_x].notna() & y.notna()
