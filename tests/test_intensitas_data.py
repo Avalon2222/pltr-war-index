@@ -230,3 +230,9 @@ def test_korelasi_lag_tabel_kosong_tetap_punya_kolom():
 def test_korelasi_lag_maks_negatif_dibaca_mutlak():
     df = pd.DataFrame({"perubahan_log": np.arange(20.0), "return_lebih": np.arange(20.0) ** 2})
     assert intensitas.korelasi_lag(df, lag_maks=-2)["lag"].tolist() == [-2, -1, 0, 1, 2]
+
+
+def test_konflik_mingguan_satu_teater_sebagai_teks():
+    k = _konflik(14)
+    m = intensitas.konflik_mingguan(k, "Rusia-Ukraina")
+    assert m["korban"].iloc[1] == 7
