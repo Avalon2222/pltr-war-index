@@ -95,3 +95,12 @@ def test_perbarui_csv_tidak_menimpa_kalau_ada_ticker_kosong(tmp_path, monkeypatc
     with pytest.raises(RuntimeError, match="SPY"):
         ambil_harga.perbarui_csv(path)
     assert path.read_text() == "isi lama"
+
+
+def test_korelasi_bergulir_satu_pembanding_sebagai_teks():
+    rng = np.random.default_rng(2)
+    acak = rng.normal(size=200)
+    ret = pd.DataFrame({"PLTR": acak, "ITA": acak * 3}, index=pd.date_range("2024-01-01", periods=200, freq="B"))
+    hasil = intensitas.korelasi_bergulir(ret, pembanding="ITA", jendela=30)
+    assert list(hasil.columns) == ["ITA"]
+    assert np.allclose(hasil["ITA"], 1.0)

@@ -114,6 +114,9 @@ def korelasi_bergulir(ret_harian: pd.DataFrame, saham: str = "PLTR", pembanding=
     # Pembanding yang tidak ada di data (mis. unduhan live gagal untuk satu ticker) dilewati,
     # dan baris hanya dibuang bila SEMUA korelasinya kosong; dengan dropna() biasa, satu
     # pembanding yang kosong total membuat seluruh grafik ikut kosong.
+    # Satu ticker sebagai teks ("ITA") jangan sampai diiterasi per huruf ("I", "T", "A").
+    if isinstance(pembanding, str):
+        pembanding = (pembanding,)
     hasil = {p: ret_harian[saham].rolling(jendela).corr(ret_harian[p]) for p in pembanding if p in ret_harian}
     return pd.DataFrame(hasil, index=ret_harian.index).dropna(how="all")
 
