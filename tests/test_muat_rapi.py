@@ -31,3 +31,13 @@ def test_kinerja_relatif_lewati_harga_nol_di_awal():
     hasil = intensitas.kinerja_relatif(harga)
     assert hasil["PLTR"].iloc[1:].tolist() == [100.0, 150.0]
     assert hasil["SPY"].iloc[0] == 100.0
+
+
+def test_muat_peristiwa_tanggal_sama_tetap_urutan_csv(tmp_path):
+    baris = [{"tanggal": f"2024-01-0{i % 3 + 1}", "peristiwa": f"E{i:02d}", "kategori": "eskalasi",
+              "kawasan": "x", "keterangan": "", "sumber": ""} for i in range(60)]
+    csv = tmp_path / "peristiwa.csv"
+    pd.DataFrame(baris).to_csv(csv, index=False)
+    df = muat_data.muat_peristiwa(csv)
+    hari_pertama = df[df["tanggal"] == "2024-01-01"]["peristiwa"].tolist()
+    assert hari_pertama == sorted(hari_pertama)

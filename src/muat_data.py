@@ -56,7 +56,9 @@ def muat_peristiwa(path: Path = DIR_DATA / "peristiwa_perang.csv") -> pd.DataFra
         raise ValueError(f"Kategori peristiwa tidak dikenal di {Path(path).name}: {asing or ['(kosong)']}. "
                          f"Pilihan: {URUTAN_KATEGORI}")
     df["label_kategori"] = df["kategori"].map(KATEGORI)
-    return df.sort_values("tanggal").reset_index(drop=True)
+    # Sort stabil: peristiwa di tanggal yang sama tetap urut seperti di CSV, sehingga nomor
+    # urutnya (dipakai sebagai id di event study) tidak berubah tiap kali data dimuat.
+    return df.sort_values("tanggal", kind="mergesort").reset_index(drop=True)
 
 
 def muat_konflik(path: Path = DIR_DATA / "konflik_harian.csv") -> pd.DataFrame:
