@@ -26,6 +26,8 @@ def konflik_mingguan(konflik: pd.DataFrame, teater: list[str] | None = None) -> 
     `teater` None berarti semua teater (korban_total).
     """
     df = konflik.set_index("tanggal")
+    if isinstance(teater, str):   # satu teater sebagai teks, bukan daftar huruf
+        teater = [teater]
     if teater:
         seri = df[[f"korban_{t}" for t in teater]].sum(axis=1)
     else:
