@@ -233,3 +233,14 @@ def test_car_tidak_nan_saat_hari_terakhir_jendela_tanpa_harga():
     assert np.isfinite(h.car) and np.isfinite(h.t_stat)
     assert h.car == pytest.approx(lengkap.tabel["ar"].iloc[:-1].sum())
     assert h.tabel["car"].iloc[-1] == pytest.approx(h.car)
+
+
+def test_tabel_return_harga_nol_tidak_jadi_inf():
+    harga = pd.DataFrame({
+        "tanggal": pd.to_datetime(["2024-01-02", "2024-01-03", "2024-01-04", "2024-01-05"]),
+        "ticker": ["PLTR"] * 4,
+        "adj_close": [10.0, 0.0, 11.0, 12.1],
+    })
+    ret = sp.tabel_return(harga)
+    assert np.isfinite(ret["PLTR"].dropna()).all()
+    assert ret["PLTR"].iloc[2] == pytest.approx(0.10)

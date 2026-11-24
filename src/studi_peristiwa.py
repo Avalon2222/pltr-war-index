@@ -36,7 +36,9 @@ SIGMA_MIN = 1e-12               # di bawah ini simpangan residual hanya sisa pem
 def tabel_return(harga: pd.DataFrame) -> pd.DataFrame:
     """Harga format panjang -> return harian format lebar (kolom = ticker, index = tanggal)."""
     lebar = harga.pivot_table(index="tanggal", columns="ticker", values="adj_close").sort_index()
-    return lebar.pct_change().iloc[1:]
+    # Harga 0 atau negatif (baris rusak) membuat return -100% lalu inf di hari berikutnya,
+    # dan satu inf merusak seluruh market model. Harga itu dianggap tidak ada.
+    return lebar.where(lebar > 0).pct_change(fill_method=None).iloc[1:]
 
 
 def tabel_harga(harga: pd.DataFrame, kolom: str = "close") -> pd.DataFrame:
