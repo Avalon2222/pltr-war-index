@@ -137,12 +137,14 @@ def gabung_ged_kandidat(ged: pd.DataFrame, kandidat: pd.DataFrame, mulai: str = 
     Candidate hanya dipakai untuk tanggal setelah GED final berakhir, supaya tidak ada kejadian
     yang terhitung dua kali di masa transisi.
     """
-    batas = pd.to_datetime(ged["date_start"]).max()
-    kandidat = kandidat[pd.to_datetime(kandidat["date_start"]) > batas]
+    # Tanggal rusak dianggap kosong (errors="coerce"), sama seperti di ringkas_harian; dulu satu
+    # tanggal salah ketik di GED atau Candidate menggagalkan seluruh ETL dengan DateParseError.
+    batas = pd.to_datetime(ged["date_start"], errors="coerce").max()
+    kandidat = kandidat[pd.to_datetime(kandidat["date_start"], errors="coerce") > batas]
     semua = pd.concat([ged[KOLOM], kandidat[KOLOM]], ignore_index=True)
     hasil = ringkas_harian(semua, mulai)
     # Rentang yang melewati tanggal mulai kejadian terakhir dipotong, supaya ujung data tidak tampak "sepi".
-    hasil = hasil[hasil["tanggal"] <= pd.to_datetime(semua["date_start"]).max()].copy()
+    hasil = hasil[hasil["tanggal"] <= pd.to_datetime(semua["date_start"], errors="coerce").max()].copy()
     hasil["status"] = (hasil["tanggal"] > batas).map({True: "awal", False: "final"})
     return hasil.reset_index(drop=True)
 

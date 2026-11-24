@@ -78,6 +78,14 @@ def test_gabung_potong_ujung_rentang():
     assert list(h.index) == list(range(len(h)))
 
 
+def test_gabung_tanggal_rusak_dilewati():
+    ged = _kejadian([("2024-01-01", "2024-01-01", "Ukraine", 4), ("2024-13-45", "2024-13-45", "Ukraine", 99)])
+    kandidat = _kejadian([("2024-01-02", "2024-01-02", "Sudan", 6), ("kemarin", "kemarin", "Sudan", 99)])
+    h = siapkan_konflik.gabung_ged_kandidat(ged, kandidat, mulai="2024-01-01")
+    assert h["korban_total"].sum() == 10
+    assert list(h["status"]) == ["final", "awal"]
+
+
 def test_main_tanpa_jaringan(tmp_path, monkeypatch):
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w") as z:
