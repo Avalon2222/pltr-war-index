@@ -45,7 +45,8 @@ def konflik_mingguan(konflik: pd.DataFrame, teater: list[str] | None = None) -> 
 
 def return_mingguan(harga_lebar: pd.DataFrame) -> pd.DataFrame:
     """Harga penutupan harian (kolom = ticker) -> return mingguan (Jumat ke Jumat)."""
-    return harga_lebar.resample("W-FRI").last().pct_change()
+    # Harga 0 atau negatif (baris rusak) dianggap tidak ada; kalau tidak, return minggu berikutnya inf.
+    return harga_lebar.where(harga_lebar > 0).resample("W-FRI").last().pct_change(fill_method=None)
 
 
 def gabung_mingguan(konflik: pd.DataFrame, harga_lebar: pd.DataFrame, saham: str = "PLTR",

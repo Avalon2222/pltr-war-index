@@ -104,3 +104,13 @@ def test_korelasi_bergulir_satu_pembanding_sebagai_teks():
     hasil = intensitas.korelasi_bergulir(ret, pembanding="ITA", jendela=30)
     assert list(hasil.columns) == ["ITA"]
     assert np.allclose(hasil["ITA"], 1.0)
+
+
+def test_return_mingguan_harga_nol_dilewati():
+    idx = pd.date_range("2024-01-01", "2024-01-19", freq="B")
+    harga = pd.DataFrame({"PLTR": np.linspace(10, 12.8, len(idx))}, index=idx)
+    harga.loc["2024-01-12", "PLTR"] = 0.0      # baris rusak di hari Jumat
+    r = intensitas.return_mingguan(harga)
+    assert np.isfinite(r["PLTR"].iloc[1:]).all()
+    # Minggu itu memakai harga terakhir yang masuk akal (Kamis 11 Jan).
+    assert r["PLTR"].iloc[1] == pytest.approx(harga.loc["2024-01-11", "PLTR"] / harga.loc["2024-01-05", "PLTR"] - 1)
