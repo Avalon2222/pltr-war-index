@@ -97,10 +97,12 @@ def minggu_terpanas(df: pd.DataFrame, persentil: float = 0.9) -> pd.DataFrame:
     panas = ada & (df["perubahan_log"] >= batas)
     ringkas = []
     for label, maska in [("Minggu lonjakan korban", panas), ("Minggu lainnya", ada & ~panas)]:
-        x = df.loc[maska, "return_lebih"]
+        # Minggu tanpa return patokan (return_lebih NaN) tidak dihitung; kalau ikut, porsi_naik
+        # menganggapnya "tidak naik" dan angkanya jadi terlalu kecil.
+        x = df.loc[maska, "return_lebih"].dropna()
         ringkas.append({
             "kelompok": label,
-            "jumlah_minggu": int(maska.sum()),
+            "jumlah_minggu": len(x),
             "rata_return_lebih": float(x.mean()),
             "median_return_lebih": float(x.median()),
             "porsi_naik": float((x > 0).mean()),

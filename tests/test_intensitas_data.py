@@ -236,3 +236,12 @@ def test_konflik_mingguan_satu_teater_sebagai_teks():
     k = _konflik(14)
     m = intensitas.konflik_mingguan(k, "Rusia-Ukraina")
     assert m["korban"].iloc[1] == 7
+
+
+def test_minggu_terpanas_return_kosong_tidak_dihitung_turun():
+    # Dua minggu lonjakan tanpa return patokan: porsi_naik dihitung dari minggu yang ada angkanya saja.
+    df = pd.DataFrame({"perubahan_log": np.arange(20.0),
+                       "return_lebih": [0.0] * 16 + [0.02, 0.03, np.nan, np.nan]})
+    panas = intensitas.minggu_terpanas(df, 0.8).set_index("kelompok").loc["Minggu lonjakan korban"]
+    assert panas["jumlah_minggu"] == 2
+    assert panas["porsi_naik"] == 1.0
