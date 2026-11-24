@@ -86,6 +86,14 @@ def test_gabung_tanggal_rusak_dilewati():
     assert list(h["status"]) == ["final", "awal"]
 
 
+def test_gabung_tanpa_ged_pakai_semua_kandidat():
+    ged = _kejadian([("2024-01-01", "2024-01-01", "Ukraine", 4)]).iloc[0:0]
+    kandidat = _kejadian([("2024-01-02", "2024-01-02", "Sudan", 6), ("2024-01-03", "2024-01-03", "Sudan", 1)])
+    h = siapkan_konflik.gabung_ged_kandidat(ged, kandidat, mulai="2024-01-01")
+    assert h["korban_total"].sum() == 7
+    assert set(h["status"]) == {"awal"}
+
+
 def test_main_tanpa_jaringan(tmp_path, monkeypatch):
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w") as z:

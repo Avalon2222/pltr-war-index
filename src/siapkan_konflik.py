@@ -140,12 +140,16 @@ def gabung_ged_kandidat(ged: pd.DataFrame, kandidat: pd.DataFrame, mulai: str = 
     # Tanggal rusak dianggap kosong (errors="coerce"), sama seperti di ringkas_harian; dulu satu
     # tanggal salah ketik di GED atau Candidate menggagalkan seluruh ETL dengan DateParseError.
     batas = pd.to_datetime(ged["date_start"], errors="coerce").max()
-    kandidat = kandidat[pd.to_datetime(kandidat["date_start"], errors="coerce") > batas]
+    # GED kosong (atau semua tanggalnya rusak): batas NaT membuat semua perbandingan False, sehingga
+    # seluruh Candidate dulu ikut terbuang. Tanpa GED, semua kejadian Candidate dipakai sebagai data awal.
+    if pd.notna(batas):
+        kandidat = kandidat[pd.to_datetime(kandidat["date_start"], errors="coerce") > batas]
     semua = pd.concat([ged[KOLOM], kandidat[KOLOM]], ignore_index=True)
     hasil = ringkas_harian(semua, mulai)
     # Rentang yang melewati tanggal mulai kejadian terakhir dipotong, supaya ujung data tidak tampak "sepi".
     hasil = hasil[hasil["tanggal"] <= pd.to_datetime(semua["date_start"], errors="coerce").max()].copy()
-    hasil["status"] = (hasil["tanggal"] > batas).map({True: "awal", False: "final"})
+    awal = hasil["tanggal"] > batas if pd.notna(batas) else pd.Series(True, index=hasil.index)
+    hasil["status"] = awal.map({True: "awal", False: "final"})
     return hasil.reset_index(drop=True)
 
 
