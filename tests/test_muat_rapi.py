@@ -53,3 +53,17 @@ def test_muat_konflik_buang_tanggal_rusak(tmp_path):
     assert pd.api.types.is_datetime64_any_dtype(df["tanggal"])
     assert df["korban_total"].tolist() == [10, 7]
     assert intensitas.konflik_mingguan(df)["korban"].sum() == 17
+
+
+def test_muat_harga_snapshot_tanggal_dan_harga_rusak(tmp_path):
+    f = tmp_path / "harga.csv"
+    f.write_text(
+        "tanggal,ticker,close,adj_close,volume\n"
+        "2024-01-02,PLTR,17.0,17.0,100\n2024-01-03,PLTR,n.a.,n.a.,0\nkemarin,PLTR,18.0,18.0,100\n",
+        encoding="utf-8",
+    )
+    df = muat_data.muat_harga_snapshot(f)
+    assert pd.api.types.is_datetime64_any_dtype(df["tanggal"])
+    assert pd.api.types.is_float_dtype(df["close"])
+    assert len(df) == 2
+    assert pd.isna(df.loc[1, "close"])

@@ -26,7 +26,14 @@ URUTAN_KATEGORI = list(KATEGORI)
 
 
 def muat_harga_snapshot(path: Path = DIR_DATA / "harga_saham.csv") -> pd.DataFrame:
-    return pd.read_csv(path, parse_dates=["tanggal"])
+    df = pd.read_csv(path)
+    # Tanggal rusak membuat seluruh kolom tanggal tetap teks; harga teks ("n.a.") membuat kolom close
+    # jadi teks dan pivot harga gagal. Tanggal rusak dibuang, harga rusak jadi NaN (hari tanpa harga).
+    df["tanggal"] = pd.to_datetime(df["tanggal"], errors="coerce")
+    for kolom in ("close", "adj_close", "volume"):
+        if kolom in df.columns:
+            df[kolom] = pd.to_numeric(df[kolom], errors="coerce")
+    return df.dropna(subset=["tanggal"]).reset_index(drop=True)
 
 
 def muat_harga(live: bool = False) -> tuple[pd.DataFrame, str]:
