@@ -67,3 +67,17 @@ def test_muat_harga_snapshot_tanggal_dan_harga_rusak(tmp_path):
     assert pd.api.types.is_float_dtype(df["close"])
     assert len(df) == 2
     assert pd.isna(df.loc[1, "close"])
+
+
+def test_muat_konflik_korban_teks_tidak_merusak_jumlah(tmp_path):
+    f = tmp_path / "konflik.csv"
+    f.write_text(
+        "tanggal,korban_Iran,korban_total,kejadian_total,status\n"
+        "2024-01-05,1,10,2,final\n2024-01-06,?,?,1,final\n2024-01-07,2,7,1,final\n",
+        encoding="utf-8",
+    )
+    df = muat_data.muat_konflik(f)
+    assert pd.api.types.is_numeric_dtype(df["korban_total"])
+    mingguan = intensitas.konflik_mingguan(df)
+    assert mingguan["korban"].tolist() == [10.0, 7.0]
+    assert intensitas.konflik_mingguan(df, ["Iran"])["korban"].tolist() == [1.0, 2.0]
