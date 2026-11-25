@@ -73,6 +73,11 @@ def muat_konflik(path: Path = DIR_DATA / "konflik_harian.csv") -> pd.DataFrame:
     # Satu tanggal rusak membuat parse_dates diam-diam menyerah (kolom tetap teks), lalu resample
     # mingguan gagal untuk seluruh tabel. Baris itu dibuang saja, sama seperti muat_laporan.
     df["tanggal"] = pd.to_datetime(df["tanggal"], errors="coerce")
+    # Satu sel korban bukan angka ("?") membuat kolomnya teks, dan resample().sum() lalu menyambung
+    # teks, bukan menjumlah. Sel itu dihitung kosong (NaN), sehingga dilewati saat dijumlah.
+    for kolom in df.columns:
+        if kolom.startswith("korban_") or kolom == "kejadian_total":
+            df[kolom] = pd.to_numeric(df[kolom], errors="coerce")
     return df.dropna(subset=["tanggal"]).reset_index(drop=True)
 
 
