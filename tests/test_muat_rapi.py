@@ -41,3 +41,15 @@ def test_muat_peristiwa_tanggal_sama_tetap_urutan_csv(tmp_path):
     df = muat_data.muat_peristiwa(csv)
     hari_pertama = df[df["tanggal"] == "2024-01-01"]["peristiwa"].tolist()
     assert hari_pertama == sorted(hari_pertama)
+
+
+def test_muat_konflik_buang_tanggal_rusak(tmp_path):
+    f = tmp_path / "konflik.csv"
+    f.write_text(
+        "tanggal,korban_total,kejadian_total,status\n2024-01-05,10,2,final\n2024-13-40,5,1,final\n2024-01-06,7,1,final\n",
+        encoding="utf-8",
+    )
+    df = muat_data.muat_konflik(f)
+    assert pd.api.types.is_datetime64_any_dtype(df["tanggal"])
+    assert df["korban_total"].tolist() == [10, 7]
+    assert intensitas.konflik_mingguan(df)["korban"].sum() == 17

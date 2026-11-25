@@ -62,7 +62,11 @@ def muat_peristiwa(path: Path = DIR_DATA / "peristiwa_perang.csv") -> pd.DataFra
 
 
 def muat_konflik(path: Path = DIR_DATA / "konflik_harian.csv") -> pd.DataFrame:
-    return pd.read_csv(path, parse_dates=["tanggal"])
+    df = pd.read_csv(path)
+    # Satu tanggal rusak membuat parse_dates diam-diam menyerah (kolom tetap teks), lalu resample
+    # mingguan gagal untuk seluruh tabel. Baris itu dibuang saja, sama seperti muat_laporan.
+    df["tanggal"] = pd.to_datetime(df["tanggal"], errors="coerce")
+    return df.dropna(subset=["tanggal"]).reset_index(drop=True)
 
 
 def muat_laporan(path: Path = DIR_DATA / "laporan_keuangan_pltr.csv") -> pd.DataFrame:
