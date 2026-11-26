@@ -36,7 +36,12 @@ def muat_harga_snapshot(path: Path = DIR_DATA / "harga_saham.csv") -> pd.DataFra
             angka = pd.to_numeric(df[kolom], errors="coerce")
             # "inf" lolos to_numeric; return harian lalu jadi tak hingga dan CAR seluruh peristiwa rusak.
             df[kolom] = angka.where(np.isfinite(angka))
-    return df.dropna(subset=["tanggal"]).reset_index(drop=True)
+    df = df.dropna(subset=["tanggal"])
+    # Baris dobel untuk tanggal dan ticker yang sama (snapshot lama tergabung unduhan baru) dulu
+    # dirata-rata oleh pivot_table, jadi harganya bukan harga mana pun. Pakai baris terakhir.
+    if "ticker" in df.columns:
+        df = df.drop_duplicates(["tanggal", "ticker"], keep="last")
+    return df.reset_index(drop=True)
 
 
 def muat_harga(live: bool = False) -> tuple[pd.DataFrame, str]:

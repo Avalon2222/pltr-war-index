@@ -94,3 +94,17 @@ def test_muat_harga_snapshot_harga_tak_hingga_jadi_kosong(tmp_path):
     assert df["close"].isna().tolist() == [False, True, False]
     assert df["adj_close"].isna().tolist() == [False, True, True]
     assert pd.isna(df.loc[2, "volume"])
+
+
+def test_muat_harga_snapshot_baris_dobel_pakai_yang_terakhir(tmp_path):
+    f = tmp_path / "harga.csv"
+    f.write_text(
+        "tanggal,ticker,close,adj_close,volume\n"
+        "2024-01-02,PLTR,17.0,17.0,100\n2024-01-03,PLTR,18.0,18.0,100\n"
+        "2024-01-03,PLTR,20.0,20.0,100\n2024-01-03,SPY,470.0,470.0,100\n",
+        encoding="utf-8",
+    )
+    df = muat_data.muat_harga_snapshot(f)
+    assert len(df) == 3
+    lebar = df.pivot_table(index="tanggal", columns="ticker", values="adj_close")
+    assert lebar.loc["2024-01-03", "PLTR"] == 20.0
