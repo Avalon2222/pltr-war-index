@@ -85,7 +85,9 @@ def muat_konflik(path: Path = DIR_DATA / "konflik_harian.csv") -> pd.DataFrame:
     # teks, bukan menjumlah. Sel itu dihitung kosong (NaN), sehingga dilewati saat dijumlah.
     for kolom in df.columns:
         if kolom.startswith("korban_") or kolom == "kejadian_total":
-            df[kolom] = pd.to_numeric(df[kolom], errors="coerce")
+            angka = pd.to_numeric(df[kolom], errors="coerce")
+            # "inf" juga lolos to_numeric dan membuat total korban mingguan tak hingga.
+            df[kolom] = angka.where(np.isfinite(angka))
     return df.dropna(subset=["tanggal"]).reset_index(drop=True)
 
 

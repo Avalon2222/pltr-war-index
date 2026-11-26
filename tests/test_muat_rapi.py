@@ -108,3 +108,14 @@ def test_muat_harga_snapshot_baris_dobel_pakai_yang_terakhir(tmp_path):
     assert len(df) == 3
     lebar = df.pivot_table(index="tanggal", columns="ticker", values="adj_close")
     assert lebar.loc["2024-01-03", "PLTR"] == 20.0
+
+
+def test_muat_konflik_korban_tak_hingga_dilewati(tmp_path):
+    f = tmp_path / "konflik.csv"
+    f.write_text(
+        "tanggal,korban_total,kejadian_total,status\n"
+        "2024-01-05,10,2,final\n2024-01-06,inf,inf,final\n2024-01-07,7,1,final\n",
+        encoding="utf-8",
+    )
+    df = muat_data.muat_konflik(f)
+    assert intensitas.konflik_mingguan(df)["korban"].tolist() == [10.0, 7.0]
