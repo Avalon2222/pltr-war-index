@@ -81,3 +81,16 @@ def test_muat_konflik_korban_teks_tidak_merusak_jumlah(tmp_path):
     mingguan = intensitas.konflik_mingguan(df)
     assert mingguan["korban"].tolist() == [10.0, 7.0]
     assert intensitas.konflik_mingguan(df, ["Iran"])["korban"].tolist() == [1.0, 2.0]
+
+
+def test_muat_harga_snapshot_harga_tak_hingga_jadi_kosong(tmp_path):
+    f = tmp_path / "harga.csv"
+    f.write_text(
+        "tanggal,ticker,close,adj_close,volume\n"
+        "2024-01-02,PLTR,17.0,17.0,100\n2024-01-03,PLTR,inf,inf,100\n2024-01-04,PLTR,18.0,-inf,inf\n",
+        encoding="utf-8",
+    )
+    df = muat_data.muat_harga_snapshot(f)
+    assert df["close"].isna().tolist() == [False, True, False]
+    assert df["adj_close"].isna().tolist() == [False, True, True]
+    assert pd.isna(df.loc[2, "volume"])

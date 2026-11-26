@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from src import ambil_harga
@@ -32,7 +33,9 @@ def muat_harga_snapshot(path: Path = DIR_DATA / "harga_saham.csv") -> pd.DataFra
     df["tanggal"] = pd.to_datetime(df["tanggal"], errors="coerce")
     for kolom in ("close", "adj_close", "volume"):
         if kolom in df.columns:
-            df[kolom] = pd.to_numeric(df[kolom], errors="coerce")
+            angka = pd.to_numeric(df[kolom], errors="coerce")
+            # "inf" lolos to_numeric; return harian lalu jadi tak hingga dan CAR seluruh peristiwa rusak.
+            df[kolom] = angka.where(np.isfinite(angka))
     return df.dropna(subset=["tanggal"]).reset_index(drop=True)
 
 
