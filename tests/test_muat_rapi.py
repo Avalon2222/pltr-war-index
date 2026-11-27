@@ -143,3 +143,14 @@ def test_muat_konflik_tanggal_dobel_dihitung_sekali(tmp_path):
     assert len(df) == 2
     assert df.loc[df["tanggal"] == "2024-01-05", "korban_total"].tolist() == [12]
     assert intensitas.konflik_mingguan(df)["korban"].tolist() == [12.0, 7.0]
+
+
+def test_muat_harga_snapshot_ticker_dirapikan(tmp_path):
+    f = tmp_path / "harga.csv"
+    f.write_text(
+        "tanggal,ticker,close,adj_close,volume\n"
+        "2024-01-02,PLTR,17.0,17.0,100\n2024-01-03,pltr ,18.0,18.0,100\n2024-01-03, SPY,470.0,470.0,100\n",
+        encoding="utf-8",
+    )
+    df = muat_data.muat_harga_snapshot(f)
+    assert df["ticker"].tolist() == ["PLTR", "PLTR", "SPY"]

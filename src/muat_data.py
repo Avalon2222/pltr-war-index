@@ -40,6 +40,8 @@ def muat_harga_snapshot(path: Path = DIR_DATA / "harga_saham.csv") -> pd.DataFra
     # Baris dobel untuk tanggal dan ticker yang sama (snapshot lama tergabung unduhan baru) dulu
     # dirata-rata oleh pivot_table, jadi harganya bukan harga mana pun. Pakai baris terakhir.
     if "ticker" in df.columns:
+        # "pltr" atau "PLTR " dari suntingan manual jadi kolom terpisah di tabel harga lebar.
+        df["ticker"] = df["ticker"].map(lambda t: t.strip().upper() if isinstance(t, str) else t)
         df = df.drop_duplicates(["tanggal", "ticker"], keep="last")
     return df.reset_index(drop=True)
 
