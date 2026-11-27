@@ -131,3 +131,15 @@ def test_muat_konflik_korban_negatif_jadi_kosong(tmp_path):
     assert df["korban_total"].isna().tolist() == [False, True, False]
     assert pd.isna(df.loc[1, "kejadian_total"])
     assert intensitas.konflik_mingguan(df)["korban"].tolist() == [10.0, 7.0]
+
+
+def test_muat_konflik_tanggal_dobel_dihitung_sekali(tmp_path):
+    f = tmp_path / "konflik.csv"
+    f.write_text(
+        "tanggal,korban_total,kejadian_total,status\n2024-01-05,10,2,awal\n2024-01-06,7,1,final\n2024-01-05,12,3,final\n",
+        encoding="utf-8",
+    )
+    df = muat_data.muat_konflik(f)
+    assert len(df) == 2
+    assert df.loc[df["tanggal"] == "2024-01-05", "korban_total"].tolist() == [12]
+    assert intensitas.konflik_mingguan(df)["korban"].tolist() == [12.0, 7.0]

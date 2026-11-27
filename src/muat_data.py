@@ -89,7 +89,10 @@ def muat_konflik(path: Path = DIR_DATA / "konflik_harian.csv") -> pd.DataFrame:
             # "inf" juga lolos to_numeric dan membuat total korban mingguan tak hingga.
             # Korban negatif juga tidak mungkin; nilai seperti -50 diam-diam mengurangi total minggu itu.
             df[kolom] = angka.where(np.isfinite(angka) & (angka >= 0))
-    return df.dropna(subset=["tanggal"]).reset_index(drop=True)
+    df = df.dropna(subset=["tanggal"])
+    # Satu hari yang tercatat dua kali (gabungan unduhan lama dan baru) terhitung dua kali di total mingguan.
+    df = df.drop_duplicates("tanggal", keep="last")
+    return df.reset_index(drop=True)
 
 
 def muat_laporan(path: Path = DIR_DATA / "laporan_keuangan_pltr.csv") -> pd.DataFrame:
