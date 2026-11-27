@@ -119,3 +119,15 @@ def test_muat_konflik_korban_tak_hingga_dilewati(tmp_path):
     )
     df = muat_data.muat_konflik(f)
     assert intensitas.konflik_mingguan(df)["korban"].tolist() == [10.0, 7.0]
+
+
+def test_muat_konflik_korban_negatif_jadi_kosong(tmp_path):
+    f = tmp_path / "konflik.csv"
+    f.write_text(
+        "tanggal,korban_total,kejadian_total,status\n2024-01-05,10,2,final\n2024-01-06,-50,-1,final\n2024-01-07,7,1,final\n",
+        encoding="utf-8",
+    )
+    df = muat_data.muat_konflik(f)
+    assert df["korban_total"].isna().tolist() == [False, True, False]
+    assert pd.isna(df.loc[1, "kejadian_total"])
+    assert intensitas.konflik_mingguan(df)["korban"].tolist() == [10.0, 7.0]

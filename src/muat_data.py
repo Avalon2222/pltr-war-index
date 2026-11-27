@@ -87,7 +87,8 @@ def muat_konflik(path: Path = DIR_DATA / "konflik_harian.csv") -> pd.DataFrame:
         if kolom.startswith("korban_") or kolom == "kejadian_total":
             angka = pd.to_numeric(df[kolom], errors="coerce")
             # "inf" juga lolos to_numeric dan membuat total korban mingguan tak hingga.
-            df[kolom] = angka.where(np.isfinite(angka))
+            # Korban negatif juga tidak mungkin; nilai seperti -50 diam-diam mengurangi total minggu itu.
+            df[kolom] = angka.where(np.isfinite(angka) & (angka >= 0))
     return df.dropna(subset=["tanggal"]).reset_index(drop=True)
 
 
