@@ -101,6 +101,11 @@ def muat_konflik(path: Path = DIR_DATA / "konflik_harian.csv") -> pd.DataFrame:
             # Korban negatif juga tidak mungkin; nilai seperti -50 diam-diam mengurangi total minggu itu.
             df[kolom] = angka.where(np.isfinite(angka) & (angka >= 0))
     df = df.dropna(subset=["tanggal"])
+    # Total yang kosong atau rusak ("?") sementara kolom teaternya terisi dulu membuat hari itu hilang
+    # dari total mingguan; isi dari jumlah teater.
+    teater = [k for k in df.columns if k.startswith("korban_") and k != "korban_total"]
+    if "korban_total" in df.columns and teater:
+        df["korban_total"] = df["korban_total"].fillna(df[teater].sum(axis=1, min_count=1))
     # Satu hari yang tercatat dua kali (gabungan unduhan lama dan baru) terhitung dua kali di total mingguan.
     df = df.drop_duplicates("tanggal", keep="last")
     return df.reset_index(drop=True)

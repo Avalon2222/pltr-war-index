@@ -180,3 +180,16 @@ def test_muat_harga_snapshot_tanpa_ticker_dibuang_dan_volume_negatif_kosong(tmp_
     assert df["ticker"].tolist() == ["PLTR", "PLTR"]
     assert df["volume"].tolist()[0] == 1000
     assert pd.isna(df["volume"].iloc[1])
+
+
+def test_muat_konflik_total_kosong_diisi_dari_teater(tmp_path):
+    csv = tmp_path / "konflik.csv"
+    csv.write_text(
+        "tanggal,korban_Rusia-Ukraina,korban_Iran,korban_Lainnya,korban_total,kejadian_total,status\n"
+        "2024-01-01,10,5,1,16,4,final\n"
+        "2024-01-02,20,0,2,?,5,final\n"
+        "2024-01-03,,,,,0,final\n"
+    )
+    df = muat_data.muat_konflik(csv)
+    assert df["korban_total"].tolist()[:2] == [16.0, 22.0]
+    assert pd.isna(df["korban_total"].iloc[2])
