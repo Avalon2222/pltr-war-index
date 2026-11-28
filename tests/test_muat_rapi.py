@@ -154,3 +154,15 @@ def test_muat_harga_snapshot_ticker_dirapikan(tmp_path):
     )
     df = muat_data.muat_harga_snapshot(f)
     assert df["ticker"].tolist() == ["PLTR", "PLTR", "SPY"]
+
+
+def test_muat_peristiwa_nama_berspasi_dan_baris_dobel(tmp_path):
+    csv = tmp_path / "peristiwa.csv"
+    csv.write_text(
+        "tanggal,peristiwa,kategori,kawasan\n"
+        "2023-10-07, Serangan 7  Oktober ,perang_baru,Timur Tengah\n"
+        "2023-10-07,Serangan 7 Oktober,perang_baru,Timur Tengah\n"
+        "2024-04-13,Serangan Iran ke Israel,eskalasi,Timur Tengah\n"
+    )
+    df = muat_data.muat_peristiwa(csv)
+    assert df["peristiwa"].tolist() == ["Serangan 7 Oktober", "Serangan Iran ke Israel"]

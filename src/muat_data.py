@@ -65,6 +65,10 @@ def muat_peristiwa(path: Path = DIR_DATA / "peristiwa_perang.csv") -> pd.DataFra
         rusak = df.loc[tanggal.isna(), "peristiwa"].fillna("(tanpa nama)").tolist()
         raise ValueError(f"Tanggal peristiwa tidak valid di {Path(path).name}: {rusak}")
     df["tanggal"] = tanggal
+    # Spasi di tepi nama peristiwa ikut tampil di grafik, dan peristiwa yang tersalin dua kali
+    # (tanggal + nama sama) dulu dihitung dua kali di rata-rata CAR.
+    df["peristiwa"] = df["peristiwa"].map(lambda p: " ".join(p.split()) if isinstance(p, str) else p)
+    df = df.drop_duplicates(["tanggal", "peristiwa"], keep="first")
     # " Eskalasi" atau "ESKALASI" dari suntingan manual tetap dikenali.
     df["kategori"] = df["kategori"].str.strip().str.lower()
     asing = sorted(set(df["kategori"].dropna()) - set(KATEGORI))
