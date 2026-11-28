@@ -166,3 +166,17 @@ def test_muat_peristiwa_nama_berspasi_dan_baris_dobel(tmp_path):
     )
     df = muat_data.muat_peristiwa(csv)
     assert df["peristiwa"].tolist() == ["Serangan 7 Oktober", "Serangan Iran ke Israel"]
+
+
+def test_muat_harga_snapshot_tanpa_ticker_dibuang_dan_volume_negatif_kosong(tmp_path):
+    csv = tmp_path / "harga.csv"
+    csv.write_text(
+        "tanggal,ticker,close,adj_close,volume\n"
+        "2024-01-02,PLTR,17.0,17.0,1000\n"
+        "2024-01-02,,100.0,100.0,500\n"
+        "2024-01-03,PLTR,17.5,17.5,-20\n"
+    )
+    df = muat_data.muat_harga_snapshot(csv)
+    assert df["ticker"].tolist() == ["PLTR", "PLTR"]
+    assert df["volume"].tolist()[0] == 1000
+    assert pd.isna(df["volume"].iloc[1])

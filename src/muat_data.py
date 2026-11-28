@@ -42,7 +42,12 @@ def muat_harga_snapshot(path: Path = DIR_DATA / "harga_saham.csv") -> pd.DataFra
     if "ticker" in df.columns:
         # "pltr" atau "PLTR " dari suntingan manual jadi kolom terpisah di tabel harga lebar.
         df["ticker"] = df["ticker"].map(lambda t: t.strip().upper() if isinstance(t, str) else t)
+        # Baris tanpa ticker tidak bisa masuk tabel harga lebar; dulu jadi kolom "nan"/"" sendiri.
+        df = df[df["ticker"].notna() & (df["ticker"] != "")]
         df = df.drop_duplicates(["tanggal", "ticker"], keep="last")
+    if "volume" in df.columns:
+        # Volume negatif bukan jumlah transaksi; sel seperti itu dianggap kosong.
+        df["volume"] = df["volume"].where(df["volume"] >= 0)
     return df.reset_index(drop=True)
 
 
